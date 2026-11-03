@@ -25,7 +25,7 @@ description: "Desglose de tareas del MVP de despacho y rastreo — TransAndes TM
 - [ ] T002 [P] Crear el workspace Angular en `src/transandes-web/`
 - [ ] T003 [P] Crear el proyecto .NET MAUI en `src/TransAndes.Mobile/` con `net10.0-android;net10.0-ios` (target Android API 36)
 - [x] T004 [P] Configurar formato y análisis estático (`.editorconfig`, analizadores, ESLint)
-- [ ] T005 [P] Pipeline CI (compilar, pruebas, cobertura ≥ 80 % en Domain/Rndc) en `.github/workflows/ci.yml`
+- [x] T005 [P] Pipeline CI (compilar, pruebas, cobertura ≥ 80 % en Domain/Rndc) en `.github/workflows/ci.yml`
 - [ ] T006 [P] Infraestructura Azure en `infra/main.bicep` (Container Apps, SQL, Blob, Service Bus, SignalR, Key Vault, App Insights)
 
 ---
