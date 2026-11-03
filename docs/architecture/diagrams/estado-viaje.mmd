@@ -1,0 +1,24 @@
+stateDiagram-v2
+  direction LR
+  [*] --> Planeado : CrearViaje
+  Planeado --> Asignado : Asignar [política aprobada]
+  Asignado --> Planeado : Desasignar
+  Asignado --> Despachado : Manifiesto aceptado por RNDC
+  Asignado --> RechazadoRndc : RNDC rechaza
+  RechazadoRndc --> Asignado : Corregir datos y reenviar
+  Despachado --> EnRuta : Conductor inicia ruta
+  EnRuta --> EnRuta : Novedad / ubicación
+  EnRuta --> Entregado : Prueba de entrega completa
+  Planeado --> Anulado : Anular
+  Asignado --> Anulado : Anular
+  RechazadoRndc --> Anulado : Anular
+  Despachado --> Anulado : Anular [anulación RNDC aceptada]
+  EnRuta --> Anulado : Anular [anulación RNDC aceptada]
+  Entregado --> [*]
+  Anulado --> [*]
+
+  note right of Asignado
+    Al confirmar despacho se crea
+    ManifiestoRndc (Pendiente) y el
+    viaje espera aquí la respuesta
+  end note

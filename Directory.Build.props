@@ -1,0 +1,18 @@
+<Project>
+  <!--
+    Versión de .NET centralizada (ADR-006 / research.md R7).
+    MVP en .NET 8; para migrar a .NET 10 cambia TargetFramework aquí y la versión en global.json.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- Uso de APIs obsoletas = error, para no acumular deuda antes de migrar a .NET 10 -->
+    <WarningsAsErrors>$(WarningsAsErrors);CS0618;CS0612;SYSLIB0001</WarningsAsErrors>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+</Project>

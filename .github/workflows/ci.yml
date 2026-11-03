@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend .NET 8 — build, test, vulnerabilidades
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Restaurar
+        run: dotnet restore TransAndes.Tms.sln
+
+      - name: Compilar (advertencias = errores)
+        run: dotnet build TransAndes.Tms.sln --no-restore -c Release
+
+      - name: Pruebas con cobertura
+        run: dotnet test TransAndes.Tms.sln --no-build -c Release --collect:"XPlat Code Coverage" --results-directory ./coverage
+
+      # T048 — mitigación por .NET 8 sin soporte (ADR-006): falla si hay paquetes vulnerables
+      - name: Escaneo de dependencias vulnerables
+        run: |
+          dotnet list TransAndes.Tms.sln package --vulnerable --include-transitive 2>&1 | tee vuln.txt
+          if grep -q -i "has the following vulnerable packages" vuln.txt; then
+            echo "::error::Se encontraron paquetes vulnerables"; exit 1
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cobertura
+          path: coverage

@@ -1,0 +1,23 @@
+sequenceDiagram
+  autonumber
+  actor CL as Cliente
+  participant W as Página pública (Angular)
+  participant A as API TMS
+  participant DB as Azure SQL
+  participant MP as Azure Maps
+
+  CL->>W: Abrir https://…/t/{token}
+  W->>A: GET /t/{token} (sin sesión)
+  A->>DB: Buscar viaje por token
+  alt Token inválido
+    A-->>W: 404
+    W-->>CL: "Enlace no válido"
+  else Token vencido (entrega + 30 días)
+    A-->>W: 410 Gone
+    W-->>CL: "Entregado" (sin ubicación)
+  else Vigente
+    A->>DB: Estado, última ubicación, ETA, prueba de entrega
+    A-->>W: 200 (sin datos personales del conductor)
+    W->>MP: Renderizar mapa con la ubicación aproximada
+    W-->>CL: Estado del envío
+  end

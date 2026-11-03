@@ -1,0 +1,37 @@
+flowchart LR
+  sql[("<b>Azure SQL</b><br/>[Contenedor]")]
+  bus[["<b>Service Bus</b><br/>rndc-envios<br/>[Contenedor]"]]
+
+  subgraph wk["Worker RNDC  [Contenedor · .NET 8]"]
+    direction TB
+    pub["<b>Publicador de outbox</b><br/>[BackgroundService]"]
+    cons["<b>Consumidor de envíos</b><br/>[ServiceBusProcessor]<br/>Idempotente: viajeId + operación"]
+    gw["<b>IRndcGateway</b><br/>[Puerto]<br/>EnviarRemesa · EnviarManifiesto<br/>Anular · Consultar"]
+    map["<b>Mapeador RNDC</b><br/>[Adaptador]<br/>Viaje → esquema RNDC"]
+    cli["<b>Cliente RNDC</b><br/>[HTTP + Polly]<br/>Timeout · backoff · circuit breaker"]
+    store["<b>Registro de envíos</b><br/>[EF Core]<br/>Solicitud/respuesta · FR-006"]
+    exp["<b>Expirador de enlaces</b><br/>[BackgroundService]"]
+  end
+
+  rndc["<b>RNDC</b><br/>[Sistema externo]"]
+  sig["<b>Azure SignalR</b><br/>[Contenedor]"]
+
+  sql -- "Lee outbox" --> pub
+  pub -- "Publica" --> bus
+  bus -- "Entrega" --> cons
+  cons --> gw
+  gw --> map
+  gw --> cli
+  cli -- "Servicio web" --> rndc
+  cons -- "Registra resultado" --> store
+  store --> sql
+  cons -- "Notifica" --> sig
+  exp --> sql
+
+  classDef container fill:#438dd5,stroke:#2e6295,color:#fff
+  classDef comp fill:#85bbf0,stroke:#5d82a8,color:#000
+  classDef ext fill:#999999,stroke:#6b6b6b,color:#fff
+  class sql,bus,sig container
+  class pub,cons,gw,map,cli,store,exp comp
+  class rndc ext
+  style wk fill:#ffffff,stroke:#2e6295,stroke-width:2px,stroke-dasharray:6 4

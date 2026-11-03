@@ -1,0 +1,4 @@
+# Reglas específicas para proyectos de prueba
+[*.cs]
+# Los nombres de prueba usan guiones bajos para leerse como frases (Metodo_condicion_resultado)
+dotnet_diagnostic.CA1707.severity = none

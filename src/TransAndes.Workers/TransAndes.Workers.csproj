@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <ItemGroup>
+    <!-- Hosting desde el framework compartido de ASP.NET Core: sin paquete NuGet adicional -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TransAndes.Application\TransAndes.Application.csproj" />
+    <ProjectReference Include="..\TransAndes.Infrastructure\TransAndes.Infrastructure.csproj" />
+    <ProjectReference Include="..\TransAndes.Rndc\TransAndes.Rndc.csproj" />
+  </ItemGroup>
+
+</Project>
