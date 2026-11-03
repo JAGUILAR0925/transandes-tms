@@ -1,5 +1,6 @@
 using TransAndes.Application.Abstracciones;
 using TransAndes.Application.Clientes;
+using TransAndes.Application.Consultas;
 using TransAndes.Application.Despacho;
 using TransAndes.Application.Flota;
 using TransAndes.Infrastructure.EnMemoria;
@@ -28,6 +29,7 @@ public static class ServiciosTms
         services.AddScoped<CrearViajeHandler>();
         services.AddScoped<AsignarRecursosHandler>();
         services.AddScoped<ObtenerViajeHandler>();
+        services.AddScoped<ConsultasHandler>();
         return services;
     }
 }

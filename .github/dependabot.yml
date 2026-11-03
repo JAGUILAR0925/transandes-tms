@@ -1,0 +1,23 @@
+# Hallazgo #7 (OWASP A03:2025, cadena de suministro): PR automáticos de actualización.
+version: 2
+updates:
+  - package-ecosystem: nuget
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: America/Bogota
+    open-pull-requests-limit: 5
+    groups:
+      pruebas:
+        patterns: ["xunit*", "Microsoft.NET.Test.Sdk", "coverlet*", "Microsoft.AspNetCore.Mvc.Testing"]
+    ignore:
+      # El backend se mantiene en .NET 8 hasta la migración planeada (ADR-006, T049-T052).
+      - dependency-name: "Microsoft.AspNetCore.*"
+        update-types: ["version-update:semver-major"]
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: America/Bogota

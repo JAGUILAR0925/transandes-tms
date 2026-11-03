@@ -37,10 +37,10 @@ description: "Desglose de tareas del MVP de despacho y rastreo — TransAndes TM
 - [x] T007 Prueba de la máquina de estados del viaje en `tests/TransAndes.Domain.Tests/ViajeEstadosTests.cs` (debe fallar)
 - [x] T008 Implementar `Viaje` y su máquina de estados en `src/TransAndes.Domain/Viajes/Viaje.cs`
 - [x] T009 [P] Entidades Cliente, Vehiculo, Conductor, OrdenDeCargue en `src/TransAndes.Domain/`
-- [ ] T010 DbContext, configuraciones y primera migración en `src/TransAndes.Infrastructure/Persistence/`
-- [ ] T011 [P] Autenticación Entra ID y autorización por roles (FR-013) en `src/TransAndes.Api/Auth/`
+- [ ] T010 DbContext, configuraciones y primera migración en `src/TransAndes.Infrastructure/Persistence/`. Incluir: índice único filtrado por vehículo/conductor en viajes activos + `rowversion` en `Viaje` (409 ante doble asignación concurrente) y secuencia SQL para el consecutivo (revisión PR #2, hallazgos #2 y #9); longitudes de columna = `Limites` del dominio
+- [ ] T011 [P] Autenticación Entra ID y autorización por roles (FR-013) en `src/TransAndes.Api/Auth/`. `RequireAuthorization()` en el grupo `/v1` + prueba que falle si un endpoint `/v1` responde sin token (revisión PR #2, hallazgo #1 — bloquea el primer despliegue)
 - [ ] T012 [P] Auditoría de cambios de estado (FR-011) en `src/TransAndes.Infrastructure/Auditing/`
-- [ ] T013 [P] Logs estructurados + OpenTelemetry con `correlationId` en `src/TransAndes.Api/Observability/`
+- [ ] T013 [P] Logs estructurados + OpenTelemetry con `correlationId` en `src/TransAndes.Api/Observability/`; registrar asignaciones y rechazos con `[LoggerMessage]` sin datos personales (revisión PR #2, hallazgo #8)
 - [ ] T014 [P] Cifrado de datos personales del conductor (Ley 1581) en `src/TransAndes.Infrastructure/Security/`
 
 **Checkpoint**: Base lista; las historias pueden avanzar.

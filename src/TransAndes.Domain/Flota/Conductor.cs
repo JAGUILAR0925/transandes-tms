@@ -21,21 +21,11 @@ public sealed partial class Conductor
             throw new DomainException("La cédula debe tener entre 6 y 10 dígitos.");
         }
 
-        if (string.IsNullOrWhiteSpace(nombre))
-        {
-            throw new DomainException("El nombre del conductor es obligatorio.");
-        }
-
-        if (string.IsNullOrWhiteSpace(licenciaCategoria))
-        {
-            throw new DomainException("La categoría de licencia es obligatoria.");
-        }
-
         Id = id;
         Cedula = cedulaLimpia;
-        Nombre = nombre.Trim();
-        Celular = (celular ?? string.Empty).Trim();
-        LicenciaCategoria = licenciaCategoria.Trim().ToUpperInvariant();
+        Nombre = Texto.Requerido(nombre, "El nombre del conductor", Limites.NombrePersona);
+        Celular = Texto.Opcional(celular, "El celular", Limites.Celular);
+        LicenciaCategoria = Texto.Requerido(licenciaCategoria, "La categoría de licencia", Limites.CategoriaLicencia).ToUpperInvariant();
         VenceLicencia = venceLicencia;
     }
 
