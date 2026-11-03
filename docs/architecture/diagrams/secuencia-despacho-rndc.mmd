@@ -1,0 +1,51 @@
+sequenceDiagram
+  autonumber
+  actor C as Coordinador
+  participant W as Web (Angular)
+  participant A as API TMS
+  participant DB as Azure SQL
+  participant WK as Worker RNDC
+  participant SB as Service Bus
+  participant R as RNDC
+  participant S as SignalR
+
+  C->>W: Confirmar despacho del viaje
+  W->>A: POST /viajes/{id}/despacho
+  A->>DB: Cargar Viaje (Asignado)
+  A->>A: Validar datos completos
+  rect rgb(235, 244, 255)
+    note over A,DB: Una sola transacción
+    A->>DB: Crear ManifiestoRndc (Pendiente)
+    A->>DB: Insertar mensaje en Outbox
+  end
+  A-->>W: 202 Accepted
+  W-->>C: "Enviando al RNDC…"
+
+  WK->>DB: Leer Outbox pendiente
+  WK->>SB: Publicar EnvioRndc(viajeId, clave)
+  WK->>DB: Marcar Outbox publicado
+  SB->>WK: Entregar mensaje
+  WK->>DB: ManifiestoRndc → Enviando
+  WK->>R: Consultar por clave de idempotencia
+  alt Ya existe en RNDC
+    R-->>WK: Número de manifiesto
+  else No existe
+    WK->>R: Enviar remesa y manifiesto
+    R-->>WK: Respuesta
+  end
+
+  alt Aceptado
+    WK->>DB: Manifiesto Aceptado + Viaje Despachado + solicitud/respuesta
+    WK->>S: ResultadoRndc(ok, número)
+    S-->>W: Notificación
+    W-->>C: Viaje despachado ✔
+  else Rechazado (error de datos)
+    WK->>DB: Manifiesto Rechazado + Viaje RechazadoRndc
+    WK->>S: ResultadoRndc(error legible)
+    S-->>W: Notificación
+    W-->>C: Corregir y reenviar
+  else Error transitorio
+    WK->>DB: Intentos + 1 (ErrorTransitorio)
+    WK->>SB: Abandonar mensaje (reintento con backoff)
+    note over WK,SB: Tras 3 intentos → Dead Letter + alerta a Cumplimiento
+  end

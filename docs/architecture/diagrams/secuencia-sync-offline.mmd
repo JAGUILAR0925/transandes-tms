@@ -1,0 +1,35 @@
+sequenceDiagram
+  autonumber
+  actor D as Conductor
+  participant M as App MAUI
+  participant L as SQLite local
+  participant B as Blob Storage
+  participant A as API TMS
+  participant DB as Azure SQL
+  participant S as SignalR
+  participant W as Web (Coordinador)
+
+  note over D,M: Sin señal
+  D->>M: Registrar entrega (fotos, receptor, firma)
+  M->>L: Guardar adjuntos y evento (eventId = GUID)
+  M-->>D: "Guardado — se enviará al tener señal"
+
+  note over M,A: Conexión recuperada
+  M->>A: Solicitar URLs SAS de subida
+  A-->>M: URLs (corta duración)
+  M->>B: Subir fotos y firma
+  B-->>M: 201 Created
+  M->>A: POST /viajes/{id}/eventos [lote ordenado por hora del dispositivo]
+  A->>DB: Cargar Viaje
+  loop Cada evento
+    alt eventId nuevo
+      A->>A: Viaje.RegistrarEvento() + reglas de estado
+      A->>DB: Guardar evento (+ PruebaDeEntrega si aplica)
+    else eventId repetido
+      A->>A: Ignorar (idempotente)
+    end
+  end
+  A-->>M: 200 OK (aceptados / repetidos)
+  M->>L: Marcar eventos Confirmados
+  A->>S: Evento "Viaje entregado"
+  S-->>W: Actualizar tablero

@@ -1,0 +1,22 @@
+stateDiagram-v2
+  direction LR
+  [*] --> Pendiente : ConfirmarDespacho (outbox)
+  Pendiente --> Enviando : Worker toma el mensaje
+  Enviando --> Aceptado : Respuesta OK + número
+  Enviando --> Rechazado : Error de negocio (datos)
+  Enviando --> ErrorTransitorio : Timeout / 5xx / sin red
+  ErrorTransitorio --> Enviando : Reintento con backoff [intentos < 3]
+  ErrorTransitorio --> Fallido : intentos = 3 → DLQ + alerta
+  Fallido --> Pendiente : Reenvío manual (Cumplimiento)
+  Rechazado --> Pendiente : Coordinador corrige y reenvía
+  Aceptado --> AnulacionPendiente : AnularViaje
+  AnulacionPendiente --> Anulado : RNDC confirma anulación
+  Aceptado --> [*]
+  Anulado --> [*]
+
+  note right of ErrorTransitorio
+    Antes de reenviar se consulta
+    al RNDC por la clave de
+    idempotencia: si ya existe,
+    pasa directo a Aceptado
+  end note

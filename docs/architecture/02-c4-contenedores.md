@@ -1,0 +1,77 @@
+# C4 nivel 2 — Diagrama de contenedores
+
+Cada contenedor es algo que se despliega o almacena datos por separado.
+
+```mermaid
+flowchart LR
+  subgraph usuarios[" "]
+    direction TB
+    coord["<b>Personal interno</b><br/>[Persona]<br/>Coordinador · Gerencia · Cumplimiento"]
+    cond["<b>Conductor</b><br/>[Persona]<br/>Celular Android / iOS"]
+    cli["<b>Cliente</b><br/>[Persona externa]<br/>Navegador sin sesión"]
+  end
+
+  subgraph tms["TransAndes TMS  [Sistema]"]
+    direction TB
+    web["<b>Web de despacho</b><br/>[Angular · Static Web Apps]<br/>Órdenes, viajes, mapa, errores RNDC,<br/>reportes, página pública de rastreo"]
+    app["<b>App del conductor</b><br/>[.NET MAUI 10]<br/>Viajes, estados, novedades,<br/>prueba de entrega, GPS c/5 min"]
+    local[("<b>BD local</b><br/>[SQLite]<br/>Viajes y cola de eventos")]
+    api["<b>API TMS</b><br/>[ASP.NET Core 8 · Container Apps]<br/>Casos de uso, dominio, REST"]
+    worker["<b>Worker RNDC</b><br/>[.NET 8 Worker · Container Apps]<br/>Outbox, envíos con reintento,<br/>expiración de enlaces"]
+    sql[("<b>Base de datos</b><br/>[Azure SQL]<br/>Viajes, flota, manifiestos,<br/>eventos, auditoría, outbox")]
+    blob[("<b>Archivos</b><br/>[Blob Storage]<br/>Fotos y firmas")]
+    bus[["<b>Cola rndc-envios</b><br/>[Service Bus]<br/>Envíos + dead letter"]]
+    sig["<b>Tiempo real</b><br/>[Azure SignalR Service]<br/>Novedades, ubicaciones,<br/>resultados RNDC"]
+  end
+
+  subgraph externos[" "]
+    direction TB
+    rndc["<b>RNDC</b><br/>[Sistema externo]<br/>MinTransporte"]
+    idp["<b>Entra ID</b><br/>[Sistema externo]"]
+    maps["<b>Azure Maps</b><br/>[Sistema externo]"]
+  end
+
+  coord -- "HTTPS" --> web
+  cli -- "/t/{token} · HTTPS" --> web
+  cond --> app
+  app -- "SQLite" --> local
+  app -- "Sincroniza eventos y<br/>ubicaciones · HTTPS/JSON" --> api
+  app -- "Sube fotos · SAS" --> blob
+  web -- "HTTPS/JSON" --> api
+  sig -- "WebSocket" --> web
+  web -. "Mapas" .-> maps
+  api -- "EF Core" --> sql
+  api -- "Publica" --> sig
+  api -. "Valida tokens · OIDC" .-> idp
+  worker -- "Outbox / manifiestos" --> sql
+  worker <-- "AMQP" --> bus
+  worker -- "Remesa y manifiesto<br/>[Servicio web]" --> rndc
+  worker -- "Resultado RNDC" --> sig
+
+  classDef person fill:#08427b,stroke:#052e56,color:#fff
+  classDef extperson fill:#686868,stroke:#4d4d4d,color:#fff
+  classDef container fill:#438dd5,stroke:#2e6295,color:#fff
+  classDef ext fill:#999999,stroke:#6b6b6b,color:#fff
+  class coord,cond person
+  class cli extperson
+  class web,app,local,api,worker,sql,blob,bus,sig container
+  class rndc,idp,maps ext
+  style tms fill:#ffffff,stroke:#0b4884,stroke-width:2px,stroke-dasharray:6 4,color:#0b4884
+  style usuarios fill:none,stroke:none
+  style externos fill:none,stroke:none
+```
+
+## Responsabilidades y tecnología
+
+| Contenedor | Tecnología | Escalado | Notas |
+|------------|------------|----------|-------|
+| Web de despacho | Angular, Static Web Apps | CDN global | Incluye la página pública de rastreo (ruta anónima) |
+| App del conductor | .NET MAUI 10 (Android API 36, iOS) | — | Offline-first; ADR-003 |
+| API TMS | ASP.NET Core 8, Container Apps | 2–4 réplicas por HTTP | Monolito modular; ADR-001, ADR-006 |
+| Worker RNDC | .NET 8 Worker Service, Container Apps | 1–2 réplicas por longitud de cola | ADR-002 |
+| Azure SQL | General Purpose | Vertical | Outbox en la misma BD (transacción única) |
+| Blob Storage | Hot → Cool a los 90 días | — | Retención según FR-015 (pendiente) |
+| Service Bus | Standard | — | DLQ tras 3 intentos de entrega → alerta a Cumplimiento |
+| SignalR Service | Standard | — | Grupos por rol y por viaje |
+
+Transversales: **Key Vault** (secretos), **Application Insights** (telemetría), **Front Door + WAF** (perímetro).

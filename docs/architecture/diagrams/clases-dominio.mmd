@@ -1,0 +1,172 @@
+classDiagram
+  direction LR
+
+  class Viaje {
+    <<AggregateRoot>>
+    +Guid Id
+    +string Consecutivo
+    +Guid OrdenId
+    +Guid? VehiculoId
+    +Guid? ConductorId
+    +EstadoViaje Estado
+    +DateOnly FechaPlaneada
+    +DateTime? FechaEntregaReal
+    +TokenRastreo? Token
+    +Asignar(Vehiculo, Conductor, PoliticaAsignacion)
+    +MarcarDespachado(string numeroManifiesto)
+    +MarcarRechazadoRndc(string error)
+    +IniciarRuta()
+    +RegistrarEvento(EventoDeViaje) bool
+    +RegistrarUbicacion(Coordenada, DateTime)
+    +Entregar(PruebaDeEntrega)
+    +Anular(string motivo)
+  }
+
+  class EstadoViaje {
+    <<enumeration>>
+    Planeado
+    Asignado
+    RechazadoRndc
+    Despachado
+    EnRuta
+    Entregado
+    Anulado
+  }
+
+  class EventoDeViaje {
+    <<Entity>>
+    +Guid EventId
+    +TipoEvento Tipo
+    +string? Detalle
+    +string? FotoUrl
+    +DateTime HoraDispositivo
+    +DateTime HoraServidor
+    +string Usuario
+  }
+
+  class TipoEvento {
+    <<enumeration>>
+    EnCargue
+    EnRuta
+    Novedad
+    EnDescargue
+    Entregado
+  }
+
+  class PruebaDeEntrega {
+    <<Entity>>
+    +List~string~ FotosUrl
+    +string ReceptorNombre
+    +string ReceptorDocumento
+    +string FirmaUrl
+    +Coordenada Lugar
+    +DateTime Hora
+  }
+
+  class Ubicacion {
+    <<Entity>>
+    +Coordenada Punto
+    +DateTime HoraDispositivo
+  }
+
+  class Coordenada {
+    <<ValueObject>>
+    +decimal Lat
+    +decimal Lon
+  }
+
+  class TokenRastreo {
+    <<ValueObject>>
+    +string Valor
+    +DateTime? ExpiraEn
+    +EstaVigente(DateTime ahora) bool
+  }
+
+  class ManifiestoRndc {
+    <<AggregateRoot>>
+    +Guid Id
+    +Guid ViajeId
+    +string? NumeroManifiesto
+    +EstadoEnvioRndc Estado
+    +int Intentos
+    +string? UltimoError
+    +ClaveIdempotencia Clave
+    +RegistrarIntento(RespuestaRndc)
+    +PuedeReintentar() bool
+  }
+
+  class EstadoEnvioRndc {
+    <<enumeration>>
+    Pendiente
+    Enviando
+    Aceptado
+    Rechazado
+    ErrorTransitorio
+    Fallido
+    AnulacionPendiente
+    Anulado
+  }
+
+  class Vehiculo {
+    <<AggregateRoot>>
+    +Guid Id
+    +Placa Placa
+    +string Tipo
+    +int CapacidadKg
+    +Vinculacion Vinculacion
+    +DateOnly VenceSoat
+    +DateOnly VenceRtm
+    +DocumentosVigentes(DateOnly hoy) bool
+  }
+
+  class Conductor {
+    <<AggregateRoot>>
+    +Guid Id
+    +Cedula Cedula
+    +string Nombre
+    +string Celular
+    +string LicenciaCategoria
+    +DateOnly VenceLicencia
+    +LicenciaVigente(DateOnly hoy) bool
+  }
+
+  class Cliente {
+    <<AggregateRoot>>
+    +Guid Id
+    +Nit Nit
+    +string RazonSocial
+  }
+
+  class OrdenDeCargue {
+    <<AggregateRoot>>
+    +Guid Id
+    +Guid ClienteId
+    +string Origen
+    +string Destino
+    +string TipoMercancia
+    +int PesoKg
+    +decimal VolumenM3
+    +DateOnly FechaRequerida
+  }
+
+  class PoliticaAsignacion {
+    <<DomainService>>
+    +Validar(Viaje, Vehiculo, Conductor, OrdenDeCargue, DateOnly hoy) ResultadoValidacion
+  }
+
+  Viaje "1" *-- "0..*" EventoDeViaje : registra
+  Viaje "1" *-- "0..*" Ubicacion : traza
+  Viaje "1" *-- "0..1" PruebaDeEntrega : cierra con
+  Viaje --> EstadoViaje
+  Viaje --> TokenRastreo
+  EventoDeViaje --> TipoEvento
+  Ubicacion --> Coordenada
+  PruebaDeEntrega --> Coordenada
+  ManifiestoRndc --> EstadoEnvioRndc
+  ManifiestoRndc ..> Viaje : ViajeId
+  Viaje ..> OrdenDeCargue : OrdenId
+  Viaje ..> Vehiculo : VehiculoId
+  Viaje ..> Conductor : ConductorId
+  OrdenDeCargue ..> Cliente : ClienteId
+  PoliticaAsignacion ..> Vehiculo
+  PoliticaAsignacion ..> Conductor

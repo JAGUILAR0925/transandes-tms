@@ -1,0 +1,10 @@
+stateDiagram-v2
+  direction LR
+  [*] --> Capturado : Conductor registra (eventId = GUID)
+  Capturado --> EnCola : Guardado en SQLite
+  EnCola --> Enviando : Hay conexión
+  Enviando --> Confirmado : 200 OK (nuevo o repetido)
+  Enviando --> EnCola : Error de red / timeout
+  Enviando --> ConError : 4xx (dato inválido)
+  ConError --> EnCola : Conductor corrige
+  Confirmado --> [*]

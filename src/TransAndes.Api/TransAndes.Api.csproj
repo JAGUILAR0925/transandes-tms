@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <ProjectReference Include="..\TransAndes.Application\TransAndes.Application.csproj" />
+    <ProjectReference Include="..\TransAndes.Infrastructure\TransAndes.Infrastructure.csproj" />
+    <ProjectReference Include="..\TransAndes.Rndc\TransAndes.Rndc.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+  </PropertyGroup>
+
+</Project>

@@ -1,0 +1,113 @@
+openapi: 3.0.3
+info:
+  title: TransAndes TMS API (extracto MVP)
+  version: 0.1.0
+  description: Contrato de ejemplo didáctico. Empresa ficticia.
+servers:
+  - url: https://api.transandes.example/v1
+security:
+  - bearerAuth: []
+paths:
+  /ordenes:
+    post:
+      summary: Registrar orden de cargue (FR-001, US1)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OrdenNueva' }
+      responses:
+        '201': { description: Orden creada }
+        '422': { description: Validación fallida }
+  /viajes:
+    post:
+      summary: Crear viaje desde una orden (FR-002, US1)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ordenId]
+              properties: { ordenId: { type: string, format: uuid } }
+      responses:
+        '201': { description: Viaje en estado Planeado }
+  /viajes/{id}/asignacion:
+    put:
+      summary: Asignar vehículo y conductor (FR-003, US1)
+      parameters: [ { $ref: '#/components/parameters/ViajeId' } ]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [vehiculoId, conductorId]
+              properties:
+                vehiculoId: { type: string, format: uuid }
+                conductorId: { type: string, format: uuid }
+      responses:
+        '200': { description: Viaje Asignado }
+        '409': { description: Vehículo o conductor no disponible }
+        '422': { description: Documentos vencidos o capacidad insuficiente }
+  /viajes/{id}/despacho:
+    post:
+      summary: Confirmar despacho y encolar envío al RNDC (FR-004, US2)
+      parameters: [ { $ref: '#/components/parameters/ViajeId' } ]
+      responses:
+        '202': { description: Envío al RNDC encolado; el resultado llega por SignalR }
+  /viajes/{id}/eventos:
+    post:
+      summary: Sincronizar eventos desde la app (FR-007, US3) — idempotente por eventId
+      parameters: [ { $ref: '#/components/parameters/ViajeId' } ]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items: { $ref: '#/components/schemas/Evento' }
+      responses:
+        '200': { description: Eventos aceptados (los repetidos se ignoran) }
+  /viajes/{id}/ubicaciones:
+    post:
+      summary: Reportar ubicación (FR-009, US4)
+      parameters: [ { $ref: '#/components/parameters/ViajeId' } ]
+      responses:
+        '204': { description: Recibida }
+  /t/{token}:
+    get:
+      summary: Rastreo público para el cliente (FR-010, US4)
+      security: []
+      parameters:
+        - { name: token, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Estado, última ubicación, ETA y prueba de entrega }
+        '410': { description: Enlace expirado }
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+  parameters:
+    ViajeId:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+  schemas:
+    OrdenNueva:
+      type: object
+      required: [clienteId, origen, destino, pesoKg, fechaRequerida]
+      properties:
+        clienteId: { type: string, format: uuid }
+        origen: { type: string, example: "Medellín, Antioquia" }
+        destino: { type: string, example: "Barranquilla, Atlántico" }
+        tipoMercancia: { type: string }
+        pesoKg: { type: number, minimum: 1 }
+        volumenM3: { type: number }
+        fechaRequerida: { type: string, format: date }
+    Evento:
+      type: object
+      required: [eventId, tipo, horaDispositivo]
+      properties:
+        eventId: { type: string, format: uuid }
+        tipo: { type: string, enum: [EnCargue, EnRuta, Novedad, EnDescargue, Entregado] }
+        detalle: { type: string }
+        fotoUrl: { type: string }
+        horaDispositivo: { type: string, format: date-time }

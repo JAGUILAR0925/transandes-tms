@@ -1,0 +1,67 @@
+classDiagram
+  direction LR
+
+  class IRndcGateway {
+    <<interface>>
+    +EnviarRemesaAsync(MensajeRemesa) Task~RespuestaRndc~
+    +EnviarManifiestoAsync(MensajeManifiesto) Task~RespuestaRndc~
+    +AnularAsync(string numeroManifiesto) Task~RespuestaRndc~
+    +ConsultarAsync(ClaveIdempotencia) Task~RespuestaRndc~
+  }
+  class RndcSoapGateway {
+    <<Adapter>>
+  }
+  class RndcSimuladorGateway {
+    <<Adapter · pruebas>>
+  }
+  class IViajeRepository {
+    <<interface>>
+    +ObtenerAsync(Guid) Task~Viaje~
+    +GuardarAsync(Viaje) Task
+  }
+  class IOutbox {
+    <<interface>>
+    +Agregar(MensajeIntegracion)
+  }
+  class IAlmacenArchivos {
+    <<interface>>
+    +GenerarUrlSubida(string ruta) Uri
+  }
+  class INotificador {
+    <<interface>>
+    +NotificarAsync(string grupo, object evento) Task
+  }
+  class IReloj {
+    <<interface>>
+    +Ahora DateTime
+  }
+
+  class ConfirmarDespachoHandler {
+    <<UseCase>>
+    +Handle(ConfirmarDespachoCommand) Task~Resultado~
+  }
+  class SincronizarEventosHandler {
+    <<UseCase>>
+    +Handle(SincronizarEventosCommand) Task~ResultadoSync~
+  }
+  class AsignarRecursosHandler {
+    <<UseCase>>
+    +Handle(AsignarRecursosCommand) Task~Resultado~
+  }
+  class ProcesarEnvioRndcHandler {
+    <<UseCase · Worker>>
+    +Handle(EnvioRndcMessage) Task
+  }
+
+  RndcSoapGateway ..|> IRndcGateway
+  RndcSimuladorGateway ..|> IRndcGateway
+  AsignarRecursosHandler --> IViajeRepository
+  AsignarRecursosHandler --> IReloj
+  ConfirmarDespachoHandler --> IViajeRepository
+  ConfirmarDespachoHandler --> IOutbox
+  SincronizarEventosHandler --> IViajeRepository
+  SincronizarEventosHandler --> INotificador
+  SincronizarEventosHandler --> IAlmacenArchivos
+  ProcesarEnvioRndcHandler --> IRndcGateway
+  ProcesarEnvioRndcHandler --> IViajeRepository
+  ProcesarEnvioRndcHandler --> INotificador
