@@ -13,7 +13,8 @@ Paquete de especificación en la estructura de **GitHub Spec Kit**, construido a
 |------------|--------|
 | Solución .NET 8 (`src/`, `tests/`) | ✅ Esqueleto con arquitectura limpia; compila con análisis estricto |
 | Dominio: máquina de estados del `Viaje` | ✅ Implementada con 9 pruebas (T007–T008) |
-| API (`/health`) y Worker RNDC | 🟡 Esqueleto |
+| **US1 Despacho**: flota, órdenes, viajes y asignación (API `/v1`) | ✅ Dominio, casos de uso y endpoints con pruebas; persistencia en memoria (EF Core en T010) |
+| Worker RNDC | 🟡 Esqueleto |
 | Web Angular, app MAUI 10, infraestructura Bicep | ⏳ Pendiente (ver README de cada carpeta) |
 
 ## Requisitos y compilación
@@ -24,7 +25,7 @@ Paquete de especificación en la estructura de **GitHub Spec Kit**, construido a
 dotnet restore TransAndes.Tms.sln
 dotnet build TransAndes.Tms.sln
 dotnet test TransAndes.Tms.sln
-dotnet run --project src/TransAndes.Api   # GET /health
+dotnet run --project src/TransAndes.Api   # GET /health · API de despacho en /v1 (ver contracts/api.yaml)
 ```
 
 Reglas de compilación: advertencias como errores, analizadores `latest-recommended` y uso de APIs

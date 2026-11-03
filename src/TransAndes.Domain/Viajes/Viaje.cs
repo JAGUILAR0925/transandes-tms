@@ -17,6 +17,9 @@ public sealed class Viaje
     public string? NumeroManifiesto { get; private set; }
     public string? UltimoErrorRndc { get; private set; }
 
+    /// <summary>Un viaje activo ocupa su vehículo y su conductor (FR-003).</summary>
+    public bool EstaActivo => Estado is EstadoViaje.Asignado or EstadoViaje.RechazadoRndc or EstadoViaje.Despachado or EstadoViaje.EnRuta;
+
     public Viaje(Guid id, string consecutivo, Guid ordenId)
     {
         if (string.IsNullOrWhiteSpace(consecutivo))

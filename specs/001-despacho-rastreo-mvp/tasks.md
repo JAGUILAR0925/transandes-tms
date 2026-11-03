@@ -36,7 +36,7 @@ description: "Desglose de tareas del MVP de despacho y rastreo — TransAndes TM
 
 - [x] T007 Prueba de la máquina de estados del viaje en `tests/TransAndes.Domain.Tests/ViajeEstadosTests.cs` (debe fallar)
 - [x] T008 Implementar `Viaje` y su máquina de estados en `src/TransAndes.Domain/Viajes/Viaje.cs`
-- [ ] T009 [P] Entidades Cliente, Vehiculo, Conductor, OrdenDeCargue en `src/TransAndes.Domain/`
+- [x] T009 [P] Entidades Cliente, Vehiculo, Conductor, OrdenDeCargue en `src/TransAndes.Domain/`
 - [ ] T010 DbContext, configuraciones y primera migración en `src/TransAndes.Infrastructure/Persistence/`
 - [ ] T011 [P] Autenticación Entra ID y autorización por roles (FR-013) en `src/TransAndes.Api/Auth/`
 - [ ] T012 [P] Auditoría de cambios de estado (FR-011) en `src/TransAndes.Infrastructure/Auditing/`
@@ -55,13 +55,13 @@ description: "Desglose de tareas del MVP de despacho y rastreo — TransAndes TM
 
 ### Tests for User Story 1 ⚠️
 
-- [ ] T015 [P] [US1] Pruebas de validación de asignación (documentos vencidos, capacidad, disponibilidad) en `tests/TransAndes.Domain.Tests/AsignacionTests.cs`
+- [x] T015 [P] [US1] Pruebas de validación de asignación (documentos vencidos, capacidad, disponibilidad) en `tests/TransAndes.Domain.Tests/AsignacionTests.cs`
 - [ ] T016 [P] [US1] Prueba de integración `POST /ordenes`, `POST /viajes`, `PUT /viajes/{id}/asignacion` en `tests/TransAndes.Api.IntegrationTests/DespachoTests.cs`
 
 ### Implementation for User Story 1
 
-- [ ] T017 [US1] Casos de uso CrearOrden, CrearViaje, AsignarRecursos en `src/TransAndes.Application/Despacho/`
-- [ ] T018 [US1] Endpoints de órdenes y viajes según `contracts/api.yaml` en `src/TransAndes.Api/Endpoints/`
+- [x] T017 [US1] Casos de uso CrearOrden, CrearViaje, AsignarRecursos en `src/TransAndes.Application/Despacho/` (persistencia en memoria hasta T010)
+- [x] T018 [US1] Endpoints de órdenes y viajes según `contracts/api.yaml` en `src/TransAndes.Api/Endpoints/`
 - [ ] T019 [P] [US1] Pantalla de órdenes y tablero de viajes en `src/transandes-web/src/app/despacho/`
 - [ ] T020 [P] [US1] Selector de vehículos/conductores disponibles con alertas de vencimiento en `src/transandes-web/src/app/despacho/asignacion/`
 
