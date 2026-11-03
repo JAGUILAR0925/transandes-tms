@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: TransAndes TMS API (extracto MVP)
-  version: 0.2.0
+  version: 0.3.0
   description: Contrato de ejemplo didáctico. Empresa ficticia.
 servers:
   - url: https://api.transandes.example/v1
@@ -25,6 +25,13 @@ paths:
         '201': { description: Cliente creado, content: { application/json: { schema: { $ref: '#/components/schemas/Creado' } } } }
         '409': { $ref: '#/components/responses/Conflicto' }
         '422': { $ref: '#/components/responses/Validacion' }
+  /clientes/{id}:
+    get:
+      summary: Consultar cliente
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses:
+        '200': { description: Cliente }
+        '404': { description: No existe }
   /vehiculos:
     post:
       summary: Registrar vehículo (Flota, FR-003)
@@ -37,6 +44,13 @@ paths:
         '201': { description: Vehículo creado, content: { application/json: { schema: { $ref: '#/components/schemas/Creado' } } } }
         '409': { $ref: '#/components/responses/Conflicto' }
         '422': { $ref: '#/components/responses/Validacion' }
+  /vehiculos/{id}:
+    get:
+      summary: Consultar vehículo (incluye documentosVigentes a la fecha)
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses:
+        '200': { description: Vehículo }
+        '404': { description: No existe }
   /conductores:
     post:
       summary: Registrar conductor (Flota, FR-003)
@@ -49,6 +63,13 @@ paths:
         '201': { description: Conductor creado, content: { application/json: { schema: { $ref: '#/components/schemas/Creado' } } } }
         '409': { $ref: '#/components/responses/Conflicto' }
         '422': { $ref: '#/components/responses/Validacion' }
+  /conductores/{id}:
+    get:
+      summary: Consultar conductor — cédula enmascarada (******1234) y sin celular (Ley 1581)
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses:
+        '200': { description: Conductor }
+        '404': { description: No existe }
   /ordenes:
     post:
       summary: Registrar orden de cargue (FR-001, US1)
@@ -61,6 +82,13 @@ paths:
         '201': { description: Orden creada, content: { application/json: { schema: { $ref: '#/components/schemas/Creado' } } } }
         '404': { $ref: '#/components/responses/NoEncontrado' }
         '422': { $ref: '#/components/responses/Validacion' }
+  /ordenes/{id}:
+    get:
+      summary: Consultar orden de cargue
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses:
+        '200': { description: Orden }
+        '404': { description: No existe }
   /viajes:
     post:
       summary: Crear viaje desde una orden (FR-002, US1)
@@ -136,7 +164,7 @@ paths:
 components:
   responses:
     Validacion:
-      description: Reglas de negocio incumplidas (documentos vencidos, capacidad, datos inválidos)
+      description: Reglas de negocio incumplidas (documentos vencidos, capacidad, longitudes máximas, datos inválidos). Un JSON mal formado o un enum no textual responde 400.
       content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problema' } } }
     NoEncontrado:
       description: Recurso referenciado inexistente
@@ -147,6 +175,11 @@ components:
   securitySchemes:
     bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
   parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
     ViajeId:
       name: id
       in: path

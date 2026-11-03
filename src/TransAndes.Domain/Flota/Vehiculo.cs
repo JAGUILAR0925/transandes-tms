@@ -22,9 +22,9 @@ public sealed partial class Vehiculo
             throw new DomainException("La placa debe tener el formato AAA123.");
         }
 
-        if (string.IsNullOrWhiteSpace(tipo))
+        if (!Enum.IsDefined(vinculacion))
         {
-            throw new DomainException("El tipo de vehículo es obligatorio.");
+            throw new DomainException($"Vinculación no válida: {(int)vinculacion}.");
         }
 
         if (capacidadKg <= 0)
@@ -34,7 +34,7 @@ public sealed partial class Vehiculo
 
         Id = id;
         Placa = placaNormalizada;
-        Tipo = tipo.Trim();
+        Tipo = Texto.Requerido(tipo, "El tipo de vehículo", Limites.TipoVehiculo);
         CapacidadKg = capacidadKg;
         Vinculacion = vinculacion;
         VenceSoat = venceSoat;

@@ -1,4 +1,5 @@
 using TransAndes.Application.Clientes;
+using TransAndes.Application.Consultas;
 using TransAndes.Application.Despacho;
 using TransAndes.Application.Flota;
 using TransAndes.Domain.Flota;
@@ -33,11 +34,17 @@ public static class DespachoEndpoints
             return r.Exito ? Results.Created($"/v1/clientes/{r.Valor}", new Creado(r.Valor)) : RespuestasHttp.Problema(r);
         }).WithTags("Clientes");
 
+        v1.MapGet("/clientes/{id:guid}", async (Guid id, ConsultasHandler q, CancellationToken ct) =>
+            await q.ClienteAsync(id, ct).ConfigureAwait(false) is { } dto ? Results.Ok(dto) : Results.NotFound()).WithTags("Clientes");
+
         v1.MapPost("/vehiculos", async (VehiculoNuevo body, RegistrarVehiculoHandler h, CancellationToken ct) =>
         {
             var r = await h.HandleAsync(new(body.Placa, body.Tipo, body.CapacidadKg, body.Vinculacion, body.VenceSoat, body.VenceRtm), ct).ConfigureAwait(false);
             return r.Exito ? Results.Created($"/v1/vehiculos/{r.Valor}", new Creado(r.Valor)) : RespuestasHttp.Problema(r);
         }).WithTags("Flota");
+
+        v1.MapGet("/vehiculos/{id:guid}", async (Guid id, ConsultasHandler q, CancellationToken ct) =>
+            await q.VehiculoAsync(id, ct).ConfigureAwait(false) is { } dto ? Results.Ok(dto) : Results.NotFound()).WithTags("Flota");
 
         v1.MapPost("/conductores", async (ConductorNuevo body, RegistrarConductorHandler h, CancellationToken ct) =>
         {
@@ -45,11 +52,17 @@ public static class DespachoEndpoints
             return r.Exito ? Results.Created($"/v1/conductores/{r.Valor}", new Creado(r.Valor)) : RespuestasHttp.Problema(r);
         }).WithTags("Flota");
 
+        v1.MapGet("/conductores/{id:guid}", async (Guid id, ConsultasHandler q, CancellationToken ct) =>
+            await q.ConductorAsync(id, ct).ConfigureAwait(false) is { } dto ? Results.Ok(dto) : Results.NotFound()).WithTags("Flota");
+
         v1.MapPost("/ordenes", async (OrdenNueva body, CrearOrdenHandler h, CancellationToken ct) =>
         {
             var r = await h.HandleAsync(new(body.ClienteId, body.Origen, body.Destino, body.TipoMercancia, body.PesoKg, body.VolumenM3, body.FechaRequerida), ct).ConfigureAwait(false);
             return r.Exito ? Results.Created($"/v1/ordenes/{r.Valor}", new Creado(r.Valor)) : RespuestasHttp.Problema(r);
         }).WithTags("Despacho");
+
+        v1.MapGet("/ordenes/{id:guid}", async (Guid id, ConsultasHandler q, CancellationToken ct) =>
+            await q.OrdenAsync(id, ct).ConfigureAwait(false) is { } dto ? Results.Ok(dto) : Results.NotFound()).WithTags("Despacho");
 
         v1.MapPost("/viajes", async (ViajeNuevo body, CrearViajeHandler h, CancellationToken ct) =>
         {

@@ -16,12 +16,9 @@ public sealed class OrdenDeCargue
 
     public OrdenDeCargue(Guid id, Guid clienteId, string origen, string destino, string tipoMercancia, int pesoKg, decimal volumenM3, DateOnly fechaRequerida)
     {
-        if (string.IsNullOrWhiteSpace(origen) || string.IsNullOrWhiteSpace(destino))
-        {
-            throw new DomainException("Origen y destino son obligatorios.");
-        }
-
-        if (string.Equals(origen.Trim(), destino.Trim(), StringComparison.OrdinalIgnoreCase))
+        var origenValido = Texto.Requerido(origen, "El origen", Limites.Lugar);
+        var destinoValido = Texto.Requerido(destino, "El destino", Limites.Lugar);
+        if (string.Equals(origenValido, destinoValido, StringComparison.OrdinalIgnoreCase))
         {
             throw new DomainException("El origen y el destino deben ser diferentes.");
         }
@@ -38,9 +35,9 @@ public sealed class OrdenDeCargue
 
         Id = id;
         ClienteId = clienteId;
-        Origen = origen.Trim();
-        Destino = destino.Trim();
-        TipoMercancia = (tipoMercancia ?? string.Empty).Trim();
+        Origen = origenValido;
+        Destino = destinoValido;
+        TipoMercancia = Texto.Opcional(tipoMercancia, "El tipo de mercancía", Limites.TipoMercancia);
         PesoKg = pesoKg;
         VolumenM3 = volumenM3;
         FechaRequerida = fechaRequerida;
