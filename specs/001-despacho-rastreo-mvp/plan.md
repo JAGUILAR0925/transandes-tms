@@ -17,7 +17,7 @@ al iniciar la fase 2 del producto (ver research.md R7).
 **Language/Version**: C# / **.NET 8 (`net8.0`)** para API, workers y librerías compartidas (excepción de la
 constitución v1.1.0); **.NET 10 (`net10.0-android`, `net10.0-ios`)** para la app MAUI; TypeScript para la web.
 
-**Primary Dependencies**: ASP.NET Core Minimal APIs, EF Core, MediatR (casos de uso), FluentValidation,
+**Primary Dependencies**: ASP.NET Core Minimal APIs, EF Core, handlers de casos de uso propios (sin MediatR: una clase por caso de uso, sin dependencia externa), validación en el dominio,
 Angular (versión con soporte activo; standalone components y signals), .NET MAUI, SQLite-net, SignalR.
 
 **Storage**: Azure SQL Database (transaccional), Azure Blob Storage (fotos y firmas), SQLite en el dispositivo.

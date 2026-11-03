@@ -28,6 +28,10 @@ jobs:
       - name: Pruebas con cobertura
         run: dotnet test TransAndes.Tms.sln --no-build -c Release --collect:"XPlat Code Coverage" --results-directory ./coverage
 
+      # Constitución, principio III: cobertura ≥ 80 % en Domain y Rndc
+      - name: Verificar cobertura mínima
+        run: python3 .github/scripts/verificar_cobertura.py ./coverage 0.80 TransAndes.Domain TransAndes.Rndc
+
       # T048 — mitigación por .NET 8 sin soporte (ADR-006): falla si hay paquetes vulnerables
       - name: Escaneo de dependencias vulnerables
         run: |

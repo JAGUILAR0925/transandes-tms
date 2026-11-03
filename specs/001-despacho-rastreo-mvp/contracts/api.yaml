@@ -1,13 +1,54 @@
 openapi: 3.0.3
 info:
   title: TransAndes TMS API (extracto MVP)
-  version: 0.1.0
+  version: 0.2.0
   description: Contrato de ejemplo didáctico. Empresa ficticia.
 servers:
   - url: https://api.transandes.example/v1
 security:
   - bearerAuth: []
 paths:
+  /clientes:
+    post:
+      summary: Registrar cliente generador de carga (US1, soporte)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nit, razonSocial]
+              properties:
+                nit: { type: string, example: "900123456-7" }
+                razonSocial: { type: string }
+      responses:
+        '201': { description: Cliente creado, content: { application/json: { schema: { $ref: '#/components/schemas/Creado' } } } }
+        '409': { $ref: '#/components/responses/Conflicto' }
+        '422': { $ref: '#/components/responses/Validacion' }
+  /vehiculos:
+    post:
+      summary: Registrar vehículo (Flota, FR-003)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/VehiculoNuevo' }
+      responses:
+        '201': { description: Vehículo creado, content: { application/json: { schema: { $ref: '#/components/schemas/Creado' } } } }
+        '409': { $ref: '#/components/responses/Conflicto' }
+        '422': { $ref: '#/components/responses/Validacion' }
+  /conductores:
+    post:
+      summary: Registrar conductor (Flota, FR-003)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ConductorNuevo' }
+      responses:
+        '201': { description: Conductor creado, content: { application/json: { schema: { $ref: '#/components/schemas/Creado' } } } }
+        '409': { $ref: '#/components/responses/Conflicto' }
+        '422': { $ref: '#/components/responses/Validacion' }
   /ordenes:
     post:
       summary: Registrar orden de cargue (FR-001, US1)
@@ -17,8 +58,9 @@ paths:
           application/json:
             schema: { $ref: '#/components/schemas/OrdenNueva' }
       responses:
-        '201': { description: Orden creada }
-        '422': { description: Validación fallida }
+        '201': { description: Orden creada, content: { application/json: { schema: { $ref: '#/components/schemas/Creado' } } } }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+        '422': { $ref: '#/components/responses/Validacion' }
   /viajes:
     post:
       summary: Crear viaje desde una orden (FR-002, US1)
@@ -30,7 +72,16 @@ paths:
               required: [ordenId]
               properties: { ordenId: { type: string, format: uuid } }
       responses:
-        '201': { description: Viaje en estado Planeado }
+        '201': { description: Viaje en estado Planeado, content: { application/json: { schema: { $ref: '#/components/schemas/Viaje' } } } }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+        '409': { $ref: '#/components/responses/Conflicto' }
+  /viajes/{id}:
+    get:
+      summary: Consultar un viaje
+      parameters: [ { $ref: '#/components/parameters/ViajeId' } ]
+      responses:
+        '200': { description: Viaje, content: { application/json: { schema: { $ref: '#/components/schemas/Viaje' } } } }
+        '404': { description: No existe }
   /viajes/{id}/asignacion:
     put:
       summary: Asignar vehículo y conductor (FR-003, US1)
@@ -45,9 +96,10 @@ paths:
                 vehiculoId: { type: string, format: uuid }
                 conductorId: { type: string, format: uuid }
       responses:
-        '200': { description: Viaje Asignado }
-        '409': { description: Vehículo o conductor no disponible }
-        '422': { description: Documentos vencidos o capacidad insuficiente }
+        '200': { description: Viaje Asignado, content: { application/json: { schema: { $ref: '#/components/schemas/Viaje' } } } }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+        '409': { $ref: '#/components/responses/Conflicto' }
+        '422': { $ref: '#/components/responses/Validacion' }
   /viajes/{id}/despacho:
     post:
       summary: Confirmar despacho y encolar envío al RNDC (FR-004, US2)
@@ -82,6 +134,16 @@ paths:
         '200': { description: Estado, última ubicación, ETA y prueba de entrega }
         '410': { description: Enlace expirado }
 components:
+  responses:
+    Validacion:
+      description: Reglas de negocio incumplidas (documentos vencidos, capacidad, datos inválidos)
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problema' } } }
+    NoEncontrado:
+      description: Recurso referenciado inexistente
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problema' } } }
+    Conflicto:
+      description: Conflicto con el estado actual (recurso ocupado, duplicado)
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problema' } } }
   securitySchemes:
     bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
   parameters:
@@ -91,6 +153,51 @@ components:
       required: true
       schema: { type: string, format: uuid }
   schemas:
+    Creado:
+      type: object
+      properties: { id: { type: string, format: uuid } }
+    Problema:
+      description: RFC 9457 Problem Details con la lista de errores de negocio
+      type: object
+      properties:
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        errores:
+          type: array
+          items:
+            type: object
+            properties:
+              codigo: { type: string, example: DOCUMENTO_VEHICULO_VENCIDO }
+              mensaje: { type: string }
+    Viaje:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        consecutivo: { type: string, example: V-000001 }
+        ordenId: { type: string, format: uuid }
+        estado: { type: string, enum: [Planeado, Asignado, RechazadoRndc, Despachado, EnRuta, Entregado, Anulado] }
+        vehiculoId: { type: string, format: uuid, nullable: true }
+        conductorId: { type: string, format: uuid, nullable: true }
+    VehiculoNuevo:
+      type: object
+      required: [placa, tipo, capacidadKg, vinculacion, venceSoat, venceRtm]
+      properties:
+        placa: { type: string, example: TAC123 }
+        tipo: { type: string }
+        capacidadKg: { type: integer, minimum: 1 }
+        vinculacion: { type: string, enum: [Propio, Afiliado] }
+        venceSoat: { type: string, format: date }
+        venceRtm: { type: string, format: date }
+    ConductorNuevo:
+      type: object
+      required: [cedula, nombre, licenciaCategoria, venceLicencia]
+      properties:
+        cedula: { type: string, example: "1037000111" }
+        nombre: { type: string }
+        celular: { type: string }
+        licenciaCategoria: { type: string, example: C2 }
+        venceLicencia: { type: string, format: date }
     OrdenNueva:
       type: object
       required: [clienteId, origen, destino, pesoKg, fechaRequerida]
